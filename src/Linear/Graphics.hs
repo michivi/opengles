@@ -1,3 +1,4 @@
+{-# LANGUAGE AllowAmbiguousTypes #-}
 -- |
 module Linear.Graphics where
 import Linear.V2

@@ -1,3 +1,4 @@
+{-# LANGUAGE NoMonadFailDesugaring #-}
 {-# LANGUAGE RecordWildCards #-}
 -- | 'Ktx' is the only format can handle all sorts of textures available
 -- among OpenGL [ES] implementations. This library holds any Texture as 'Ktx'

@@ -83,7 +83,8 @@ import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Concurrent (forkOS, ThreadId, myThreadId, killThread)
-import Control.Concurrent.Chan
+import Control.Concurrent.STM
+import Control.Concurrent.STM.TChan
 import Control.Exception (catch, SomeException)
 import Control.Future
 import qualified Data.ByteString as B
@@ -92,6 +93,7 @@ import Data.Typeable
 import qualified Data.Vector.Storable as V
 import Foreign
 import Foreign.C.String (peekCStringLen)
+import GHC.IO.Unsafe
 import Graphics.OpenGLES.Base
 import Graphics.OpenGLES.Buffer
 import Graphics.OpenGLES.Caps
@@ -112,7 +114,7 @@ forkGL resumeGL suspendGL swapBuffers = liftIO $ forkOS $ do
 	-- glRestoreLostObjects
 	let loop count = do
 		putStrLn $ "start draw " ++ show count
-		readChan drawQueue >>= id
+		(atomically $ readTChan drawQueue) >>= id
 		loop (count + 1 :: Integer)
 	catch (loop 0) $ \(e :: SomeException) -> do
 		glLog $ "Rendering thread terminated: " ++ show e
@@ -143,7 +145,7 @@ endFrameGL = liftIO $ withGL go >>= waitFor >> nop
 			Nothing -> myThreadId >>= killThread
 
 runGL :: MonadIO m => GL () -> m ()
-runGL io = liftIO $ writeChan drawQueue io
+runGL io = liftIO $ atomically $ writeTChan drawQueue io
 
 --runGLRes :: GL () -> IO ()
 --runGLRes io = forkOS
@@ -154,19 +156,28 @@ withGL io = mkFuture $ \update -> runGL (io >>= update . Finished)
 -- | drawQueue may have drawcalls that use previous context,
 -- so make it sure they are removed from the queue.
 resetDrawQueue :: MonadIO m => m ()
-resetDrawQueue = liftIO $ do
-	isEmpty <- isEmptyChan drawQueue
-	when (not isEmpty) (readChan drawQueue >> resetDrawQueue)
+resetDrawQueue = liftIO $ atomically go
+	where
+		go = do
+			isEmpty <- isEmptyTChan drawQueue
+			when (not isEmpty) (readTChan drawQueue >> go)
 
 glReadLogs :: MonadIO m => m [String]
-glReadLogs = liftIO $ do
-	isEmpty <- isEmptyChan errorQueue
-	if isEmpty
-		then return []
-		else (:) <$> readChan errorQueue <*> glReadLogs
+glReadLogs = liftIO $ atomically go
+	where
+		go = do
+				isEmpty <- isEmptyTChan errorQueue
+				if isEmpty
+					then return []
+					else (:) <$> readTChan errorQueue <*> go
 
 glLogContents :: MonadIO m => m [String]
-glLogContents = liftIO $ getChanContents errorQueue
+glLogContents = liftIO $ go
+	where
+		go = unsafeInterleaveIO $ do
+				x <- atomically $ readTChan errorQueue
+				xs <- go
+				return (x:xs)
 
 -- | @return ()@
 nop :: MonadIO m => m ()

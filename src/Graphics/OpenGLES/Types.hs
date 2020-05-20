@@ -52,6 +52,7 @@ import Data.Distributive
 import Data.Proxy
 import Foreign
 import GHC.TypeLits
+import qualified GHC.TypeLits
 import Graphics.OpenGLES.Base
 import Graphics.OpenGLES.Internal
 import Linear
@@ -98,9 +99,9 @@ type family SizeOf (f :: *) :: Nat where
 	SizeOf Word5999 = 4
 	SizeOf Word24_8 = 4
 	SizeOf FloatWord24_8 = 8
-	SizeOf (V2 a) = 2 * SizeOf a
-	SizeOf (V3 a) = 3 * SizeOf a
-	SizeOf (V4 a) = 4 * SizeOf a
+	SizeOf (V2 a) = (GHC.TypeLits.*) 2 (SizeOf a)
+	SizeOf (V3 a) = (GHC.TypeLits.*) 3 (SizeOf a)
+	SizeOf (V4 a) = (GHC.TypeLits.*) 4 (SizeOf a)
 	SizeOf Double = 8 -- OpenGL
 
 type family Aligned (x :: Nat) :: Nat where

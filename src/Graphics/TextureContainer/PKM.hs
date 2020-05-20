@@ -1,3 +1,4 @@
+{-# LANGUAGE NoMonadFailDesugaring #-}
 {-# LANGUAGE RecordWildCards, OverloadedStrings #-}
 -- | Reading Ericsson's ETC1\/ETC2\/EAC Texture Container Format
 module Graphics.TextureContainer.PKM where
