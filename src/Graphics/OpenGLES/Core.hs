@@ -207,13 +207,16 @@ glDraw :: Typeable p
 	-> VertexPicker
 	-> GL Bool
 glDraw (DrawMode mode) prog@(Program pobj _ _ _) setState unifs
-		(VertexArray (vao, setVA)) (VertexPicker picker) = do
+		va (VertexPicker picker) = do
 	glUseProgram =<< getObjId pobj
 	sequence setState
 	sequence unifs
-	case extVAO of
-		Nothing -> setVA
-		Just (_, bind, _) -> getObjId vao >>= bind
+	case va of
+		VertexArrayFallback setVA -> setVA
+		VertexArray vao ->
+			case extVAO of
+				Nothing -> error "Impossible!"
+				Just (_, bind, _) -> getObjId vao >>= bind
 	--glValidate prog
 	picker mode
 
@@ -363,11 +366,10 @@ attribs &= buf = do
 glVA :: [SetVertexAttr p] -> GL (VertexArray p)
 glVA attrs = do
 	let setVA = sequence_ attrs
-	glo <- case extVAO of
-		Nothing -> return (error "GLO not used")
+	case extVAO of
+		Nothing -> return $ VertexArrayFallback setVA
 		Just (gen, bind, del) ->
-			newGLO gen del (\i -> bind i >> setVA)
-	return $ VertexArray (glo, setVA)
+			VertexArray <$> newGLO gen del (\i -> bind i >> setVA)
 
 extVAO :: Maybe (GLsizei -> Ptr GLuint -> GL (),
 	GLuint -> GL (),

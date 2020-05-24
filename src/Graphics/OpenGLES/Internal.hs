@@ -468,7 +468,9 @@ class GLType a => AttrElement a where
 -- ** Vertex Array Object
 
 -- (glo, init)
-newtype VertexArray p = VertexArray (GLO, GL ())
+data VertexArray p
+	= VertexArray GLO
+	| VertexArrayFallback (GL ())
 
 
 -- ** Vertex Picker
