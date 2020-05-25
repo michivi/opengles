@@ -29,7 +29,10 @@ hasExt ext = ext `elem` glExtensions
 {-# NOINLINE hasES3 #-}
 -- | True if the GL version is 3 or later. 
 hasES3 :: Bool
-hasES3 = glCap majorVersion > 2
+hasES3 = unsafePerformIO $ do
+	mv <- pure $! glCap majorVersion
+	err <- glGetError
+	return $! mv > 2 && err == 0x0000
 
 
 -- * String Parameters
