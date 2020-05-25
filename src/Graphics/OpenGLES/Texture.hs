@@ -10,6 +10,7 @@ module Graphics.OpenGLES.Texture (
   
   -- ** Unsafe Operations
   glLoadTex2D,
+  gles2LoadTex2D,
   --glLoadCubeMap,
   glLoadTex3D,
   glLoadTex2DArray,
@@ -235,6 +236,26 @@ glLoadTex2D
 	-> GL (Texture b)
 glLoadTex2D oldtex newmip fp (V2 w h) = do
 	let (fmt, typ, ifmt) = efmt (Proxy :: Proxy (a, b))
+	let n = sizeOf (undefined :: a)
+	let ktx = Ktx "" B.empty typ 4 fmt ifmt fmt w h 0 0 1 0 []
+		[[B.PS (castForeignPtr fp) 0 (fromIntegral (w*h)*n)]]
+	let target = 0x0DE1
+	tex <- newTexture oldtex target ktx
+	withForeignPtr fp $ \ptr ->
+		glTexImage2D target 0 ifmt w h 0 fmt typ (castPtr ptr)
+	when newmip (glGenerateMipmap target)
+	return tex
+
+-- | Upload 2D texture of raw memory bitmap.
+gles2LoadTex2D
+	:: forall a b. (Storable a, ES2Format a b)
+	=> Maybe (Texture b) -- ^ if any, reuse the texture
+	-> Bool -- ^ needs mipmap update?
+	-> ForeignPtr a -- ^ pixel base components
+	-> V2 Word32 -- ^ width, height
+	-> GL (Texture b)
+gles2LoadTex2D oldtex newmip fp (V2 w h) = do
+	let (fmt, typ, ifmt) = es2fmt (Proxy :: Proxy (a, b))
 	let n = sizeOf (undefined :: a)
 	let ktx = Ktx "" B.empty typ 4 fmt ifmt fmt w h 0 0 1 0 []
 		[[B.PS (castForeignPtr fp) 0 (fromIntegral (w*h)*n)]]
