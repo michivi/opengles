@@ -293,9 +293,10 @@ postLink progname numShaders prog pid
 	linkStatus <- peek intptr
 	glGetProgramiv pid c_info_log_length intptr
 	len <- fmap fromIntegral $ peek intptr
-	info <- allocaBytes len $ \buf -> do
-		glGetProgramInfoLog pid (fromIntegral len) nullPtr buf
-		peekCStringLen (buf, len-1)
+	info <- allocaBytes len $ \buf -> alloca $ \psiz -> do
+		glGetProgramInfoLog pid (fromIntegral len) psiz buf
+		siz <- peek psiz
+		peekCStringLen (buf, fromIntegral siz)
 	let info' = if info == "" then "" else '\n':info
 	if linkStatus == 0 then do
 		let msg = "Cannot link program " ++ progname ++ info'
@@ -359,9 +360,10 @@ loadShader progressLogger (i, Shader shaderType name bs) = do
 				compiled <- peek pint
 				glGetShaderiv sid c_info_log_length pint
 				len <- fmap fromIntegral $ peek pint
-				info <- allocaBytes len $ \buf -> do
-					glGetShaderInfoLog sid (fromIntegral len) nullPtr buf
-					peekCStringLen (buf, len-1)
+				info <- allocaBytes len $ \buf -> alloca $ \psiz -> do
+					glGetShaderInfoLog sid (fromIntegral len) psiz buf
+					siz <- peek psiz
+					peekCStringLen (buf, fromIntegral siz)
 				let info' = if info == "" then "" else '\n':info
 				if compiled == 0 then do
 					let msg = "Could not compile " ++ name ++ info'
