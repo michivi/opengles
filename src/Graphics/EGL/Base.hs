@@ -47,15 +47,18 @@ type EGLSync = Ptr ()
 #define EGL14(_name, _type) \
 foreign import ccall unsafe "EGL/egl.h" _name :: _type; \
 
-#define EGL15(_name, _vendor, _type) \
+#ifdef STATIC_EGL15
+
+#define EGLEXT(_name, _cname, _hspec, _type) \
+foreign import ccall unsafe _hspec _name :: _type; \
+
+#else
+
+#define EGLEXT(_name, _cname, _hspec, _type) \
 foreign import ccall unsafe "dynamic" unwrap_/**/_name :: FunPtr (_type) -> _type; \
 _name :: _type; \
-_name = unwrap_/**/_name (glGetProcAddress "_name/**/_vendor"); \
+_name = unwrap_/**/_name (glGetProcAddress _cname); \
 
-#define EGLEXT(_name, _type) EGL15(_name/**/_vendor, _type)
-
-#ifdef STATIC_EGL15
-#define EGL15(_name, _vendor, _type) EGL14(_name, _type)
 #endif
 
 #else
@@ -64,8 +67,9 @@ _name = unwrap_/**/_name (glGetProcAddress "_name/**/_vendor"); \
 _name :: _type; \
 _name = error "EGL is unsupported on this platform"; \
 
-#define EGL15(_a, _b, _c) EGL14(_a, _c)
-#define EGLEXT EGL14
+#define EGLEXT(_name, _cname, _hspec, _type) \
+_name :: _type; \
+_name = error "EGL is unsupported on this platform"; \
 
 #endif
 
@@ -174,13 +178,13 @@ EGL14(eglCopyBuffers, EGLDisplay -> EGLSurface -> EGLNativePixmap -> IO EGLboole
 #define EGL_SYNC_FLUSH_COMMANDS_BIT_KHR		0x0001	/* eglClientWaitSyncKHR <flags> bitfield */
 #define EGL_FOREVER_KHR				0xFFFFFFFFFFFFFFFFull
 #define EGL_NO_SYNC_KHR				((EGLSyncKHR)0)
-EGL15(eglCreateSync,KHR, EGLDisplay -> EGLenum -> EGLAttrib -> IO EGLSync)
-EGL15(eglDestroytSync,KHR, EGLDisplay -> EGLSync -> IO EGLboolean)
-EGL15(eglGetSyncAttrib,KHR, EGLDisplay -> EGLSync -> EGLint -> EGLAttrib -> IO EGLboolean)
-EGL15(eglClientWaitSync,KHR, EGLDisplay -> EGLSync -> EGLint -> EGLTime -> IO EGLint)
+EGLEXT(eglCreateSync, "eglCreateSyncKHR", "EGL/eglext.h eglCreateSyncKHR", EGLDisplay -> EGLenum -> EGLAttrib -> IO EGLSync)
+EGLEXT(eglDestroySync, "eglDestroySyncKHR", "EGL/eglext.h eglDestroySyncKHR", EGLDisplay -> EGLSync -> IO EGLboolean)
+EGLEXT(eglGetSyncAttrib, "eglGetSyncAttribKHR", "EGL/eglext.h eglGetSyncAttribKHR", EGLDisplay -> EGLSync -> EGLint -> EGLAttrib -> IO EGLboolean)
+EGLEXT(eglClientWaitSync, "eglClientWaitSyncKHR", "EGL/eglext.h eglClientWaitSyncKHR", EGLDisplay -> EGLSync -> EGLint -> EGLTime -> IO EGLint)
 
 -- EGL_KHR_wait_sync
-EGL15(eglWaitSync,KHR, EGLDisplay -> EGLSync -> EGLint -> IO EGLboolean)
+EGLEXT(eglWaitSync, "eglWaitSyncKHR", "EGL/eglext.h eglWaitSyncKHR", EGLDisplay -> EGLSync -> EGLint -> IO EGLboolean)
 
 -- EGL_KHR_image_base (extends EGL_KHR_image_pixmap)
 #define EGL_IMAGE_PRESERVED               0x30D2
@@ -188,13 +192,13 @@ EGL15(eglWaitSync,KHR, EGLDisplay -> EGLSync -> EGLint -> IO EGLboolean)
 -- EGL_KHR_image
 -- not in 1.5 #define EGL_NATIVE_PIXMAP_KHR			0x30B0	/* eglCreateImageKHR target */
 #define EGL_NO_IMAGE_KHR			((EGLImageKHR)0)
-EGL15(eglCreateImage,KHR, EGLDisplay -> EGLContext -> EGLenum -> EGLClientBuffer -> EGLAttrib -> IO EGLImage)
-EGL15(eglDestroytImage,KHR, EGLDisplay -> EGLImage -> IO EGLboolean)
+EGLEXT(eglCreateImage, "eglCreateImageKHR", "EGL/eglext.h eglCreateImageKHR", EGLDisplay -> EGLContext -> EGLenum -> EGLClientBuffer -> EGLAttrib -> IO EGLImage)
+EGLEXT(eglDestroyImage, "eglDestroyImageKHR", "EGL/eglext.h eglDestroyImageKHR", EGLDisplay -> EGLImage -> IO EGLboolean)
 
 -- EGL_EXT_platform_base (optionally EGL_EXT_client_extensions)
-EGL15(eglGetPlatformDisplay,EXT, EGLenum -> EGLNativeDisplay -> EGLAttrib -> IO EGLDisplay)
-EGL15(eglCreatePlatformWindowSurface,EXT, EGLDisplay -> EGLConfig -> EGLNativeWindow -> EGLAttrib -> IO EGLSurface)
-EGL15(eglCreatePlatformPixmapSurface,EXT, EGLDisplay -> EGLConfig -> EGLNativePixmap -> EGLAttrib -> IO EGLSurface)
+EGLEXT(eglGetPlatformDisplay, "eglGetPlatformDisplayEXT", "EGL/eglext.h eglGetPlatformDisplayEXT", EGLenum -> EGLNativeDisplay -> EGLAttrib -> IO EGLDisplay)
+EGLEXT(eglCreatePlatformWindowSurface, "eglCreatePlatformWindowSurfaceEXT", "EGL/eglext.h eglCreatePlatformWindowSurfaceEXT", EGLDisplay -> EGLConfig -> EGLNativeWindow -> EGLAttrib -> IO EGLSurface)
+EGLEXT(eglCreatePlatformPixmapSurface, "eglCreatePlatformPixmapSurfaceEXT", "EGL/eglext.h eglCreatePlatformPixmapSurfaceEXT", EGLDisplay -> EGLConfig -> EGLNativePixmap -> EGLAttrib -> IO EGLSurface)
 
 
 -- ** Extensions

@@ -4,6 +4,7 @@
 *.hi
 /.stack-work
 /.cabal-sandbox
+/cabal.project.local
 /cabal.sandbox.config
 /dist-newstyle
 stack.yaml.lock
