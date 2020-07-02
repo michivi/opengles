@@ -132,7 +132,11 @@ EGL14(eglCopyBuffers, EGLDisplay -> EGLSurface -> EGLNativePixmap -> IO EGLboole
 
 -- EGL_KHR_gl_image family (use with eglCreateImageKHR)
 -- - EGL_KHR_gl_texture_2D_image
+
 #define EGL_GL_TEXTURE_2D                 0x30B1
+eglGlTexture2DKHR :: EGLenum
+eglGlTexture2DKHR = 0x30B1
+
 #define EGL_GL_TEXTURE_LEVEL              0x30BC -- attrib
 -- - EGL_KHR_gl_texture_cubemap_image
 #define EGL_GL_TEXTURE_CUBE_MAP_POSITIVE_X 0x30B3
@@ -192,6 +196,9 @@ EGLEXT(eglWaitSync, "eglWaitSyncKHR", "EGL/eglext.h eglWaitSyncKHR", EGLDisplay 
 -- EGL_KHR_image
 -- not in 1.5 #define EGL_NATIVE_PIXMAP_KHR			0x30B0	/* eglCreateImageKHR target */
 #define EGL_NO_IMAGE_KHR			((EGLImageKHR)0)
+eglNoImage :: EGLImage
+eglNoImage = nullPtr
+
 EGLEXT(eglCreateImage, "eglCreateImageKHR", "EGL/eglext.h eglCreateImageKHR", EGLDisplay -> EGLContext -> EGLenum -> EGLClientBuffer -> EGLAttrib -> IO EGLImage)
 EGLEXT(eglDestroyImage, "eglDestroyImageKHR", "EGL/eglext.h eglDestroyImageKHR", EGLDisplay -> EGLImage -> IO EGLboolean)
 
