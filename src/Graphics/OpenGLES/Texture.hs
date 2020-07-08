@@ -357,9 +357,7 @@ setSampler (Texture target _ glo) (Sampler (WrapMode s, WrapMode t, r) a
 	glTexParameteri target 0x2802 s
 	glTexParameteri target 0x2803 t
 	maybe (return ()) (\(WrapMode x) -> glTexParameteri target 0x8072 x) r
-	--if a /= 1.0 && hasExt "GL_EXT_texture_filter_anisotropic" then
-	-- GL_TEXTURE_MAX_ANISOTROPY_EXT
-	glTexParameterf target 0x84FE a
+	when (hasExt "GL_EXT_texture_filter_anisotropic") $ glTexParameterf target 0x84FE a
 	glTexParameteri target 0x2800 g
 	glTexParameteri target 0x2801 n
 
