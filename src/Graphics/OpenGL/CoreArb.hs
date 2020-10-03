@@ -24,11 +24,24 @@ foreign import ccall unsafe "wrapper"
 
 -- * Bindings
 
+#ifdef __clang__
+-- Xcode preprocessor hack.
+
+#define GLAPI(_procname, _typ) \
+foreign import ccall unsafe "dynamic" unwrap_µ_procname :: FunPtr (_typ) -> _typ; \
+_procname :: _typ; \
+_procname = unwrap_µ_procname (glGetProcAddress "_procname"); \
+{-# NOINLINE _procname #-} \
+
+#else
+
 #define GLAPI(_procname, _typ) \
 foreign import ccall unsafe "dynamic" unwrap_/**/_procname :: FunPtr (_typ) -> _typ; \
 _procname :: _typ; \
 _procname = unwrap_/**/_procname (glGetProcAddress "_procname"); \
 {-# NOINLINE _procname #-} \
+
+#endif
 
 -- foreign import ccall unsafe "dynamic"
 --   unwrap_glActiveTexture :: FunPtr (GLenum -> GL ()) -> GLenum -> GL ();

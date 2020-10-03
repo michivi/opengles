@@ -103,7 +103,8 @@ library
     frameworks: QuartzCore, OpenGLES
   
   if os(darwin)
-    cpp-options: -DSTATIC_ES2 -DSTATIC_ES3 -DNOEGL -DGLX_GETPROC
+    -- Hack: let's assume we're using Xcode clang...
+    cpp-options: -DSTATIC_ES2 -DSTATIC_ES3 -DNOEGL -DGLX_GETPROC -D__clang__
     frameworks: OpenGL
   
   if os(windows)

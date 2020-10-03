@@ -30,14 +30,14 @@ type DMat3x4 = M34 Double
 type DMat4x2 = M42 Double
 type DMat4x3 = M43 Double
 
-#define Uniform(_typ, _arg, _suffix, _rhs) \
+#define Uniform(_typ, _arg, _name, _rhs) \
 instance UnifVal (_typ) where \
-	glUniform (loc, _, _) _arg = glUniform/**/_suffix loc _rhs \
+	glUniform (loc, _, _) _arg = _name loc _rhs \
 
-Uniform(Double,x,1d,x)
-Uniform(DVec2,(V2 x y),2d,x y)
-Uniform(DVec3,(V3 x y z),3d,x y z)
-Uniform(DVec4,(V4 x y z w),4d,x y z w)
+Uniform(Double,x,glUniform1d,x)
+Uniform(DVec2,(V2 x y),glUniform2d,x y)
+Uniform(DVec3,(V3 x y z),glUniform3d,x y z)
+Uniform(DVec4,(V4 x y z w),glUniform4d,x y z w)
 
 {-# NOINLINE pokeUniformArray #-}
 pokeUniformArray

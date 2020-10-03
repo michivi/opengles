@@ -460,10 +460,21 @@ foreign import ccall unsafe "_procname" _procname :: _typ; \
 
 -- Workaround for runtime link errors
 -- TBD unify wrappers by types
+#ifdef __clang__
+-- Xcode preprocessor hack.
+
+#define DYNAMIC(_procname, _typ) \
+foreign import ccall unsafe "dynamic" unwrap_µ_procname :: FunPtr (_typ) -> _typ; \
+_procname :: _typ; \
+_procname = unwrap_µ_procname (glGetProcAddress "_procname"); \
+
+#else
 #define DYNAMIC(_procname, _typ) \
 foreign import ccall unsafe "dynamic" unwrap_/**/_procname :: FunPtr (_typ) -> _typ; \
 _procname :: _typ; \
 _procname = unwrap_/**/_procname (glGetProcAddress "_procname"); \
+
+#endif
 
 -- foreign import ccall unsafe "dynamic"
 --   unwrap_glActiveTexture :: FunPtr (GLenum -> GL ()) -> GLenum -> GL ();

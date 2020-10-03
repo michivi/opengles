@@ -143,29 +143,30 @@ castGL = unsafeCoerce
 --instance UnifVal Float where
 --	glUniform (loc, _, _) x = glUniform1f loc x
 
-#define Uniform(_typ, _arg, _suffix, _rhs) \
+#define Uniform(_typ, _arg, _name, _rhs) \
 instance UnifVal (_typ) where \
-	glUniform (loc, _, _) _arg = glUniform/**/_suffix loc _rhs \
+	glUniform (loc, _, _) _arg = _name loc _rhs \
 
-Uniform(Float,x,1f,x)
-Uniform(Vec2,(V2 x y),2f,x y)
-Uniform(Vec3,(V3 x y z),3f,x y z)
-Uniform(Vec4,(V4 x y z w),4f,x y z w)
-Uniform(Int32,x,1i,x)
-Uniform(IVec2,(V2 x y),2i,x y)
-Uniform(IVec3,(V3 x y z),3i,x y z)
-Uniform(IVec4,(V4 x y z w),4i,x y z w)
-Uniform(Word32,x,1ui,x)
-Uniform(UVec2,(V2 x y),2ui,x y)
-Uniform(UVec3,(V3 x y z),3ui,x y z)
-Uniform(UVec4,(V4 x y z w),4ui,x y z w)
+Uniform(Float,x,glUniform1f,x)
+Uniform(Vec2,(V2 x y),glUniform2f,x y)
+Uniform(Vec3,(V3 x y z),glUniform3f,x y z)
+Uniform(Vec4,(V4 x y z w),glUniform4f,x y z w)
+Uniform(Int32,x,glUniform1i,x)
+Uniform(IVec2,(V2 x y),glUniform2i,x y)
+Uniform(IVec3,(V3 x y z),glUniform3i,x y z)
+Uniform(IVec4,(V4 x y z w),glUniform4i,x y z w)
+Uniform(Word32,x,glUniform1ui,x)
+Uniform(UVec2,(V2 x y),glUniform2ui,x y)
+Uniform(UVec3,(V3 x y z),glUniform3ui,x y z)
+Uniform(UVec4,(V4 x y z w),glUniform4ui,x y z w)
+Uniform(Bool,x,glUniform1i,(toInt x))
+Uniform(BVec2,(V2 x y),glUniform2i,(toInt x) (toInt y))
+Uniform(BVec3,(V3 x y z),glUniform3i,(toInt x) (toInt y) (toInt z))
+Uniform(BVec4,(V4 x y z w),glUniform4i,(toInt x) (toInt y) (toInt z) (toInt w))
+
 toInt :: Bool -> Int32
 toInt True = 1
 toInt False = 0
-Uniform(Bool,x,1i,(toInt x))
-Uniform(BVec2,(V2 x y),2i,(toInt x) (toInt y))
-Uniform(BVec3,(V3 x y z),3i,(toInt x) (toInt y) (toInt z))
-Uniform(BVec4,(V4 x y z w),4i,(toInt x) (toInt y) (toInt z) (toInt w))
 
 {-# NOINLINE pokeUniformArray #-}
 pokeUniformArray
